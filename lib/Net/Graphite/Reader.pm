@@ -10,6 +10,8 @@ use Furl;
 use JSON qw(decode_json);
 use MIME::Base64 qw(encode_base64);
 
+use Net::Graphite::Reader::Response;
+
 =head1 NAME
 
 Net::Graphite::Reader - Access to Graphite's raw data
@@ -105,12 +107,12 @@ sub query {
     to     => $to,
   };
 
-  my $uri = $self->_build_query_uri;
+  my $uri = $self->_build_query_uri($query);
 
   my $res = $self->furl->get($uri);
   die $res->status_line unless $res->is_success;
 
-  return decode_json($res->content);
+  return Net::Graphite::Reader::Response->new($res->content);
 }
 
 sub _build_query_uri {
