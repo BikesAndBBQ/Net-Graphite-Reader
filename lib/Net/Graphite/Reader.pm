@@ -1,6 +1,7 @@
 package Net::Graphite::Reader;
 use Moose;
 use namespace::autoclean;
+our $VERSION = '0.01';
 
 use MooseX::Types::Moose qw(:all);
 use MooseX::Types::URI qw(Uri);
@@ -9,6 +10,9 @@ use Furl;
 use JSON qw(decode_json);
 use MIME::Base64 qw(encode_base64);
 
+=head1 NAME
+
+Net::Graphite::Reader - Access to Graphite's raw data
 
 =head1 ATTRIBUTES
 
