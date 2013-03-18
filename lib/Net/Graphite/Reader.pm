@@ -58,6 +58,8 @@ has 'password' => (
 
 =head2 furl
 
+Alternative Furl instance to use
+
 =cut
 
 has 'furl' => (
@@ -84,23 +86,44 @@ sub _build_furl {
 
 =head1 METHODS
 
-=head2 get
+=head2 query
 
 =cut
 
-sub get {
-  my ($self,$args) = @_;
+sub query {
+  my ($self,%args) = @_;
 
-  my $uri = $self->uri->clone;
-  $uri->query_form({
-    %$args,
-    format => 'json',
-  });
+  my $target = delete $args{target} || die("No target specified");
+  $target = ref($target) eq 'ARRAY' ? $target : [$target];
+
+  my $from   = delete $args{from}   || "-1days";
+  my $to     = delete $args{to}     || "now";
+
+  my $query = {
+    target => $target,
+    from   => $from,
+    to     => $to,
+  };
+
+  my $uri = $self->_build_query_uri;
 
   my $res = $self->furl->get($uri);
   die $res->status_line unless $res->is_success;
 
   return decode_json($res->content);
+}
+
+sub _build_query_uri {
+  my $self  = shift;
+  my $query = shift;
+
+  my $uri = $self->uri->clone;
+  $uri->query_form({
+    %$query,
+    format => 'json',
+  });
+
+  return $uri;
 }
 
 __PACKAGE__->meta->make_immutable;
