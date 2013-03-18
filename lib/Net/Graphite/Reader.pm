@@ -1,141 +1,96 @@
 package Net::Graphite::Reader;
+use Moose;
+use namespace::autoclean;
 
-use 5.006;
-use strict;
-use warnings FATAL => 'all';
+use MooseX::Types::Moose qw(:all);
+use MooseX::Types::URI qw(Uri);
 
-=head1 NAME
-
-Net::Graphite::Reader - The great new Net::Graphite::Reader!
-
-=head1 VERSION
-
-Version 0.01
-
-=cut
-
-our $VERSION = '0.01';
+use Furl;
+use JSON qw(decode_json);
+use MIME::Base64 qw(encode_base64);
 
 
-=head1 SYNOPSIS
+=head1 ATTRIBUTES
 
-Quick summary of what the module does.
-
-Perhaps a little code snippet.
-
-    use Net::Graphite::Reader;
-
-    my $foo = Net::Graphite::Reader->new();
-    ...
-
-=head1 EXPORT
-
-A list of functions that can be exported.  You can delete this section
-if you don't export anything, such as for a purely object-oriented module.
-
-=head1 SUBROUTINES/METHODS
-
-=head2 function1
+=head2 uri
 
 =cut
 
-sub function1 {
+has 'uri' => (
+  is       => 'ro',
+  isa      => Uri,
+  coerce   => 1,
+  required => 1,
+);
+
+
+=head2 username
+
+=cut
+
+has 'username' => (
+  is        => 'ro',
+  isa       => Str,
+  predicate => '_has_username',
+);
+
+
+=head2 password
+
+=cut
+
+has 'password' => (
+  is        => 'ro',
+  isa       => Str,
+  predicate => '_has_password',
+);
+
+
+=head2 furl
+
+=cut
+
+has 'furl' => (
+  is      => 'ro',
+  isa     => 'Furl',
+  lazy    => 1,
+  default => sub {
+    my ($self) = @_;
+    my %parms = ( timeout => 120 );
+    if ( $self->_has_username || $self->_has_password ) {
+      $parms{headers} = [
+        Authorization => 'Basic ' . encode_base64(join(':',
+          $self->_has_username ? $self->username : '',
+          $self->_has_password ? $self->password : '',
+        )),
+      ];
+    }
+    Furl->new(%parms);
+  },
+);
+
+
+=head1 METHODS
+
+=head2 get
+
+=cut
+
+sub get {
+  my ($self,$args) = @_;
+
+  my $uri = $self->uri->clone;
+  $uri->query_form({
+    %$args,
+    format => 'json',
+  });
+
+  my $res = $self->furl->get($uri);
+  die $res->status_line unless $res->is_success;
+
+  return decode_json($res->content);
 }
 
-=head2 function2
+__PACKAGE__->meta->make_immutable;
 
-=cut
-
-sub function2 {
-}
-
-=head1 AUTHOR
-
-Ryan Olson, C<< <ryano at gimpysoft.com> >>
-
-=head1 BUGS
-
-Please report any bugs or feature requests to C<bug-net-graphite-reader at rt.cpan.org>, or through
-the web interface at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Net-Graphite-Reader>.  I will be notified, and then you'll
-automatically be notified of progress on your bug as I make changes.
-
-
-
-
-=head1 SUPPORT
-
-You can find documentation for this module with the perldoc command.
-
-    perldoc Net::Graphite::Reader
-
-
-You can also look for information at:
-
-=over 4
-
-=item * RT: CPAN's request tracker (report bugs here)
-
-L<http://rt.cpan.org/NoAuth/Bugs.html?Dist=Net-Graphite-Reader>
-
-=item * AnnoCPAN: Annotated CPAN documentation
-
-L<http://annocpan.org/dist/Net-Graphite-Reader>
-
-=item * CPAN Ratings
-
-L<http://cpanratings.perl.org/d/Net-Graphite-Reader>
-
-=item * Search CPAN
-
-L<http://search.cpan.org/dist/Net-Graphite-Reader/>
-
-=back
-
-
-=head1 ACKNOWLEDGEMENTS
-
-
-=head1 LICENSE AND COPYRIGHT
-
-Copyright 2013 Ryan Olson.
-
-This program is free software; you can redistribute it and/or modify it
-under the terms of the the Artistic License (2.0). You may obtain a
-copy of the full license at:
-
-L<http://www.perlfoundation.org/artistic_license_2_0>
-
-Any use, modification, and distribution of the Standard or Modified
-Versions is governed by this Artistic License. By using, modifying or
-distributing the Package, you accept this license. Do not use, modify,
-or distribute the Package, if you do not accept this license.
-
-If your Modified Version has been derived from a Modified Version made
-by someone other than you, you are nevertheless required to ensure that
-your Modified Version complies with the requirements of this license.
-
-This license does not grant you the right to use any trademark, service
-mark, tradename, or logo of the Copyright Holder.
-
-This license includes the non-exclusive, worldwide, free-of-charge
-patent license to make, have made, use, offer to sell, sell, import and
-otherwise transfer the Package with respect to any patent claims
-licensable by the Copyright Holder that are necessarily infringed by the
-Package. If you institute patent litigation (including a cross-claim or
-counterclaim) against any party alleging that the Package constitutes
-direct or contributory patent infringement, then this Artistic License
-to you shall terminate on the date that such litigation is filed.
-
-Disclaimer of Warranty: THE PACKAGE IS PROVIDED BY THE COPYRIGHT HOLDER
-AND CONTRIBUTORS "AS IS' AND WITHOUT ANY EXPRESS OR IMPLIED WARRANTIES.
-THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
-PURPOSE, OR NON-INFRINGEMENT ARE DISCLAIMED TO THE EXTENT PERMITTED BY
-YOUR LOCAL LAW. UNLESS REQUIRED BY LAW, NO COPYRIGHT HOLDER OR
-CONTRIBUTOR WILL BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, OR
-CONSEQUENTIAL DAMAGES ARISING IN ANY WAY OUT OF THE USE OF THE PACKAGE,
-EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-
-=cut
-
-1; # End of Net::Graphite::Reader
+1;
