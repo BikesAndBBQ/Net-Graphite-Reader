@@ -18,6 +18,8 @@ Net::Graphite::Reader - Access to Graphite's raw data
 
 =head2 uri
 
+Base URI to your graphite instance
+
 =cut
 
 has 'uri' => (
@@ -30,6 +32,8 @@ has 'uri' => (
 
 =head2 username
 
+Username (if using basic auth)
+
 =cut
 
 has 'username' => (
@@ -40,6 +44,8 @@ has 'username' => (
 
 
 =head2 password
+
+Password (if using basic auth)
 
 =cut
 
