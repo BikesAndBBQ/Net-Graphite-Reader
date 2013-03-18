@@ -64,20 +64,22 @@ has 'furl' => (
   is      => 'ro',
   isa     => 'Furl',
   lazy    => 1,
-  default => sub {
-    my ($self) = @_;
-    my %parms = ( timeout => 120 );
-    if ( $self->_has_username || $self->_has_password ) {
-      $parms{headers} = [
-        Authorization => 'Basic ' . encode_base64(join(':',
-          $self->_has_username ? $self->username : '',
-          $self->_has_password ? $self->password : '',
-        )),
-      ];
-    }
-    Furl->new(%parms);
-  },
+  builder => '_build_furl',
 );
+
+sub _build_furl {
+  my ($self) = @_;
+  my %parms = ( timeout => 120 );
+  if ( $self->_has_username || $self->_has_password ) {
+    $parms{headers} = [
+      Authorization => 'Basic ' . encode_base64(join(':',
+        $self->_has_username ? $self->username : '',
+        $self->_has_password ? $self->password : '',
+      )),
+    ];
+  }
+  Furl->new(%parms);
+}
 
 
 =head1 METHODS
