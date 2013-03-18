@@ -15,7 +15,8 @@ WriteMakefile(
         'ExtUtils::MakeMaker' => 0,
     },
     BUILD_REQUIRES => {
-        'Test::More' => 0,
+        'Test::Most'                => 0,
+        'Test::MockObject::Extends' => 0,
     },
     PREREQ_PM => {
         'Moose'                => 1.0,
