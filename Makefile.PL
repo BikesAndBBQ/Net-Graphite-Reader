@@ -25,6 +25,7 @@ WriteMakefile(
         'Furl'                 => 1.00,
         'MIME::Base64'         => 3.00,
         'JSON'                 => 2.50,
+        'Try::Tiny'            => 0,
     },
     dist  => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
     clean => { FILES => 'Net-Graphite-Reader-*' },
