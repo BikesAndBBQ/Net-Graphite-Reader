@@ -53,6 +53,13 @@ sub non_null_datapoints {
   return wantarray ? @metrics : \@metrics;
 }
 
+=head2 average
+
+Returns the average of the non-null data points in the response for
+this metric.
+
+=cut
+
 sub average {
   my $self = shift;
 
@@ -62,6 +69,13 @@ sub average {
 
   return List::Util::sum(map { $_->[0] } @non_null_data) / @non_null_data;
 }
+
+=head2 sum
+
+Returns the sum of the non-null data points in the response for this
+metric.
+
+=cut
 
 sub sum {
   my $self = shift;
