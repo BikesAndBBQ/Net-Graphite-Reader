@@ -2,7 +2,6 @@ use strict;
 use warnings;
 
 use Test::Most;
-use Test::MockObject::Extends;
 
 use Net::Graphite::Reader;
 
@@ -18,12 +17,11 @@ my $reader = Net::Graphite::Reader->new(
     until  => 'now',
   });
 
-  cmp_ok(
-    $uri,
-    'cmp',
-    'http://example.com/render?from=-24hours&until=now&target=this.is.my.test.metric&format=json',
-    'URI for single metric'
-  );
+  like($uri, qr{^http://example\.com/render}, 'URI is base + /render path');
+  like($uri, qr{format=json}, 'Requesting in json format');
+  like($uri, qr{target=this\.is\.my\.test\.metric}, 'target parameter is present.');
+  like($uri, qr{from=-24hours}, 'from parameter is present');
+  like($uri, qr{until=now}, 'until parameter is present');
 }
 
 # Multiple metrics
@@ -34,13 +32,13 @@ my $reader = Net::Graphite::Reader->new(
     until  => 'now',
   });
 
-  cmp_ok(
-    $uri,
-    'cmp',
-    'http://example.com/render?from=-24hours&until=now&target=this.is.my.test.metric' .
-      '&&target=this.is.my.second.metric&format=json',
-    'URI for single metric'
-  );
+  like($uri, qr{^http://example\.com/render}, 'URI is base + /render path');
+  like($uri, qr{format=json}, 'Requesting in json format');
+  like($uri, qr{target=this\.is\.my\.first\.metric}, 'first target parameter is present.');
+  like($uri, qr{target=this\.is\.my\.second\.metric}, 'second target parameter is present.');
+  like($uri, qr{from=-24hours}, 'from parameter is present');
+  like($uri, qr{until=now}, 'until parameter is present');
+
 }
 
 done_testing();

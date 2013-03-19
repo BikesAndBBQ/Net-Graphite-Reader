@@ -120,6 +120,7 @@ sub _build_query_uri {
   my $query = shift;
 
   my $uri = $self->uri->clone;
+  $uri->path('/render');
   $uri->query_form({
     %$query,
     format => 'json',
