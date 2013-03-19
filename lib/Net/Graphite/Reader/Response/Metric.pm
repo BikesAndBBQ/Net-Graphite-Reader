@@ -2,6 +2,8 @@ package Net::Graphite::Reader::Response::Metric;
 use Moose;
 use namespace::autoclean;
 
+use List::Util;
+
 =head1 NAME
 
 Net::Graphite::Reader::Response::Metric - The data for a single metric
@@ -37,18 +39,34 @@ has 'datapoints' => (
 
 =head1 METHODS
 
-=head2 non_null_data_points
+=head2 non_null_datapoints
 
 Return the data points for which Graphite has a value.
 
 =cut
 
-sub non_null_data_points {
+sub non_null_datapoints {
   my $self = shift;
 
   my @metrics = grep { defined $_->[0] } $self->all_datapoints;
 
   return wantarray ? @metrics : \@metrics;
+}
+
+sub average {
+  my $self = shift;
+
+  my @non_null_data = $self->non_null_datapoints;
+
+  return undef if ! @non_null_data;
+
+  return List::Util::sum(map { $_->[0] } @non_null_data) / @non_null_data;
+}
+
+sub sum {
+  my $self = shift;
+
+  return List::Util::sum(map { $_->[0] } $self->non_null_datapoints);
 }
 
 __PACKAGE__->meta->make_immutable;
